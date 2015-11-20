@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
  * @date 26.10.15.
  * @email aronwest001@gmail.com
  */
-public interface SQLCOnstants {
+public interface SQLConstants {
 
     Pattern SQL_INSERT_VALUES_REGEXP = Pattern.compile("(([^,]+)|('.*'))");
 

@@ -1,6 +1,6 @@
 package ru.innopolis.dmd.project.innodb.sql;
 
-import ru.innopolis.dmd.project.innodb.scheme.Row;
+import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.scheme.Table;
 
 /**
@@ -14,7 +14,7 @@ public class Query {
 
     private Table table;
 
-    private MyPredicate predicate;
+    private RowPredicate predicate;
 
     /**
      * For inserts and updates
@@ -24,19 +24,19 @@ public class Query {
     /**
      * For updating
      */
-    public Query(QueryType queryType, Table table, MyPredicate predicate, Row row) {
+    public Query(QueryType queryType, Table table, RowPredicate predicate, Row row) {
         if (queryType == null)
             throw new IllegalArgumentException("Query type should be specified");
         this.queryType = queryType;
         this.table = table;
-        this.predicate = predicate == null ? new MyPredicate(null, r -> true) : predicate;
+        this.predicate = predicate == null ? new RowPredicate(r -> true) : predicate;
         this.row = row;
     }
 
     /**
      * For selecting and deleting
      */
-    public Query(QueryType queryType, Table table, MyPredicate predicate) {
+    public Query(QueryType queryType, Table table, RowPredicate predicate) {
         this(queryType, table, predicate, null);
     }
 
@@ -59,7 +59,7 @@ public class Query {
         return row;
     }
 
-    public MyPredicate getPredicate() {
+    public RowPredicate getPredicate() {
         return predicate;
     }
 }

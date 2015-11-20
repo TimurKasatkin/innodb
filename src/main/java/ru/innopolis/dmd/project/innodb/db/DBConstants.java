@@ -1,5 +1,6 @@
 package ru.innopolis.dmd.project.innodb.db;
 
+import java.io.File;
 import java.util.regex.Pattern;
 
 /**
@@ -11,38 +12,73 @@ public interface DBConstants {
 
     int PAGES_COUNT = 10;
 
-    /**
-     * Size of one letter in bytes
-     */
-    byte CHAR_SIZE = Character.SIZE / 8;
+    String[] ILLEGAL_CHARS = new String[]{"$", "[", "]", "<", ">"};
 
-    String[] ILLEGAL_CHARS = new String[]{"$", "[", "]"};
+    //=================================PATTERNS=================================
 
-    Pattern COL_DESCRIPTION_REGEXP = Pattern.compile("((pk)?\\[[^$]+\\$[^$]+])");
 
-    Pattern ROW_REGEXP = Pattern.compile("\\[(([^$\\[\\]]*\\$?)+)\\]");
+    //=================================SCHEME PATTERNS=================================
 
-    /**
-     * Length of one data page in letters
-     */
-    int PAGE_LENGTH = 2042;
+    //<authors|xx><keywords|xx><journals|xx><conferences|xx><users|xx><article_author|xx><article_journal|xx><article_keyword|xx><article_conference|xx>
 
+    Pattern DB_SCHEME_PATTERN = Pattern.compile("<(?<tablename>[a-zA-Z_]+)\\|(?<pagenumber>[0-9]+)>");
+
+    //articles{id$INT|title$VARCHAR|publtype$VARCHAR|url$VARCHAR|year$INT}{id->pk|title->unique|title,publtypes,url->notnull}{title->articles_unique_title_index(11)}
+    Pattern TABLE_SCHEME_REGEXP = Pattern.compile("(?<tablename>[a-zA-Z_]+)\\{(?<descr>[^}\\{]+)}\\{(?<constraints>[^}\\{]+)}(\\{(?<indexes>[^}\\{]+)})?");
+
+    //{title->articles_unique_title_index(11)}
+    Pattern TABLE_INDEX_SCHEME_REGEXP = Pattern.compile("\\{(?<colnames>([a-zA-Z_]+,?)+)->(?<tablename>[a-zA-Z_]+)_(unique_)?index\\((?<idxpagenum>[0-9]+)\\)}");
+
+    Pattern TABLE_CONSTRAINT_REGEXP = Pattern.compile("(?<constraintcols>([a-zA-Z_]+,?)+)->(?<constraints>((pk|unique|notnull|fk\\((?<fktable>.+)\\((?<fkcols>([A-Za-z_]+/?)+)\\)\\)),?)+)\\|?");
+    //Pattern.compile("(?<constraint>pk|fk\\((?<fktable>.+)\\((?<fkcol>.+)\\)\\)|unique|not_null)\\$?");
+
+    Pattern TABLE_COL_SCHEME_REGEXP = Pattern.compile("(?<colname>[a-zA-Z_]+)\\$(?<coltype>[a-zA-Z_]+)\\|?");
+
+    Pattern ROW_REGEXP = Pattern.compile("\\[([^$]*\\$?)+\\]");
+
+    //One byte characters
+    //[/\\,.\[\]\{\}|"'1234567890-=+*`~!@#$%^&*()_+QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm:;<>?]+
+
+    //=========================================PATHS=========================================
     /**
      * TODO: replace before production
      */
     String TABLES_FILES_DIRECTORY = "/home/timur/dev/workspace/innodb/src/main/resources/tables";
 //            ClassLoader.getSystemResource("tables").toString().replace("file:", "");
 
-    String INDEXES_FILES_DIRECTORY = TABLES_FILES_DIRECTORY + "/indexes";
+    String DATABASE_FILE_PATH = TABLES_FILES_DIRECTORY + "/innodb.data";
 
-    String PRIMARY_KEY_MARKER = "pk";
+    File DB_FILE = new File(DATABASE_FILE_PATH);
 
-    String MAIN_DELIMITER = "$";
+    //=================================COMMON PAGE STRUCTURE=================================
 
-    String MAIN_DELIMITER_REGEXP = "\\" + MAIN_DELIMITER;
+    int PAGE_TYPE_LENGTH = 1;
 
-    int CURSOR_TO_ADD_NUM_LENGTH = 4;
+    /**
+     * Length of the whole page including '\n' character
+     */
+    int PAGE_LENGTH = 4097 + /*for '\n' character*/1;
 
-    int NEXT_PAGE_JUMP_NUM_LENGTH = 2;
+    //=================================HASH INDEX STRUCTURE=================================
+
+    int INDEX_PAGE_COUNT = 15;
+
+    //=================================TABLE DATA PAGE STRUCTURE=================================
+
+    int TABLE_PAGES_COUNT = 20;
+
+    int FREE_OFFSET_LENGTH = 4;
+
+    int NEXT_PAGE_OFFSET_LENGTH = 4;
+
+    int META_DATA = PAGE_TYPE_LENGTH +
+            FREE_OFFSET_LENGTH +
+            NEXT_PAGE_OFFSET_LENGTH;
+
+    /**
+     * Length of one data page in bytes
+     */
+    int PAYLOAD_PAGE_LENGTH = PAGE_LENGTH - META_DATA;
+
 
 }

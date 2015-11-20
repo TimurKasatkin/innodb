@@ -1,7 +1,8 @@
-package ru.innopolis.dmd.project.innodb.sql;
+package ru.innopolis.dmd.project.innodb.logic;
 
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -15,15 +16,27 @@ public enum ConditionType {
     LESS_OR_EQUALS("<=", 1, (val, params) -> compare(val, params.get(0)) <= 0),
     MORE(">", 1, (val, params) -> compare(val, params.get(0)) > 0),
     MORE_OR_EQUALS(">=", 1, (val, params) -> compare(val, params.get(0)) >= 0),
-    BETWEEN("between", 2, (val, params) -> 0 <= compare(val, params.get(0)) && compare(val, params.get(1)) <= 0);
+    BETWEEN("between", 2, (val, params) -> 0 <= compare(val, params.get(0)) && compare(val, params.get(1)) <= 0),
+    LIKE_INSENSITIVE("~*", 1, new BiPredicate<Comparable, List<Comparable>>() {
+
+        private Pattern pattern;
+
+        @Override
+        public boolean test(Comparable val, List<Comparable> params) {
+            String patternStr = ((String) params.get(0));
+            if (patternStr == null || !pattern.pattern().equals(patternStr))
+                pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
+            return pattern.matcher((CharSequence) val).find();
+        }
+    });
 
     private final String operator;
 
-    private final BiFunction<Comparable, List<Comparable>, Boolean> testFunc;
+    private final BiPredicate<Comparable, List<Comparable>> testFunc;
 
     private final int numOfArguments;
 
-    ConditionType(String operator, int numOfArguments, BiFunction<Comparable, List<Comparable>, Boolean> testFunc) {
+    ConditionType(String operator, int numOfArguments, BiPredicate<Comparable, List<Comparable>> testFunc) {
         this.operator = operator;
         this.numOfArguments = numOfArguments;
         this.testFunc = testFunc;
@@ -38,7 +51,7 @@ public enum ConditionType {
     }
 
     public boolean matches(Comparable val, List<Comparable> params) {
-        return testFunc.apply(val, params);
+        return testFunc.test(val, params);
     }
 
     public String getOperator() {
@@ -48,4 +61,5 @@ public enum ConditionType {
     public int getNumOfArgs() {
         return numOfArguments;
     }
+
 }
