@@ -19,7 +19,7 @@ public class Page {
     protected boolean deserialized = false;
     protected String rawData;
     protected RandomAccessFile raf;
-    int number;
+    protected int number;
 
     public Page(int number, PageType pageType) {
         this.number = number;
@@ -84,5 +84,9 @@ public class Page {
 
     public PageType getPageType() {
         return pageType;
+    }
+
+    public int getNumber() {
+        return number;
     }
 }

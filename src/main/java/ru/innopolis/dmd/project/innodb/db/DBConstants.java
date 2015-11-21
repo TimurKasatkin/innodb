@@ -48,7 +48,7 @@ public interface DBConstants {
     String TABLES_FILES_DIRECTORY = "/home/timur/dev/workspace/innodb/src/main/resources/tables";
 //            ClassLoader.getSystemResource("tables").toString().replace("file:", "");
 
-    String DATABASE_FILE_PATH = TABLES_FILES_DIRECTORY + "/innodb.data";
+    String DATABASE_FILE_PATH = TABLES_FILES_DIRECTORY + "/tables/innodb.data";
 
     File DB_FILE = new File(DATABASE_FILE_PATH);
 
@@ -69,24 +69,24 @@ public interface DBConstants {
 
     //=================================HASH INDEX STRUCTURE=================================
 
-    int INDEX_PAGE_COUNT = 15;
+    int INDEX_PAGE_COUNT = 23;
 
     //=================================TABLE DATA PAGE STRUCTURE=================================
 
-    int TABLE_PAGES_COUNT = 20;
+    int TABLE_PAGES_COUNT = 59;
 
     int FREE_OFFSET_LENGTH = 4;
 
     int NEXT_PAGE_NUM_LENGTH = 4;
 
-    int META_DATA = PAGE_TYPE_LENGTH +
+    int META_DATA_LENGTH = PAGE_TYPE_LENGTH +
             FREE_OFFSET_LENGTH +
             NEXT_PAGE_NUM_LENGTH;
 
     /**
      * Length of one data page in bytes
      */
-    int PAYLOAD_PAGE_LENGTH = PAGE_LENGTH - META_DATA;
+    int PAYLOAD_PAGE_LENGTH = PAGE_LENGTH - META_DATA_LENGTH;
 
 
 }

@@ -17,6 +17,7 @@ import static ru.innopolis.dmd.project.innodb.db.DBConstants.TABLE_PAGES_COUNT;
 import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.entry;
 import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.map;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.setToPage;
+import static ru.innopolis.dmd.project.innodb.utils.PageUtils.createPage;
 import static ru.innopolis.dmd.project.innodb.utils.PageUtils.getPage;
 import static ru.innopolis.dmd.project.innodb.utils.RowUtils.format;
 import static ru.innopolis.dmd.project.innodb.utils.StringUtils.hash;
@@ -56,7 +57,8 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
 //                entry("url", "urlka"),
 //                entry("year", null)));
 //        pkIndex.insert("5", row);
-        for (int i = 0; i < 200; i++) {
+        long start = System.nanoTime();
+        for (int i = 10005; i < 30000; i++) {
             Row row = new Row(map(entry("id", i),
                     entry("title", "lol title#" + i),
                     entry("publtype", "journal_article"),
@@ -64,6 +66,7 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
                     entry("year", i)));
             pkIndex.insert(i + "", row);
         }
+        System.out.println("Inserted for " + (System.nanoTime() - start) / 1000000 + " ns.");
     }
 
     @Override
@@ -91,6 +94,7 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
 //            setToPage(raf, pageNum + this.pageNum + 1);
         TableDataPage page = (TableDataPage) getPage(pageNum + this.pageNum + 1, raf);
         boolean inserted = false;
+        System.out.print("Trying to insert: " + formattedRow + " ... ");
         TableDataPage cur = page;
         while (!inserted) {
             if (cur.canInsert(formattedRow)) {
@@ -101,10 +105,16 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
                 if (cur.hasNext())
                     cur = cur.next();
                 else {
-
+                    TableDataPage newPage = (TableDataPage) createPage(PageType.TABLE_DATA, raf);
+                    cur.setNextPageNum(newPage.getNumber());
+                    cur.serialize(raf);
+                    newPage.insert(formattedRow);
+                    newPage.serialize(raf);
+                    inserted = true;
                 }
             }
         }
+        System.out.println("OK.");
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }

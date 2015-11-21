@@ -7,8 +7,10 @@ import ru.innopolis.dmd.project.innodb.db.page.TableDataPage;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import static ru.innopolis.dmd.project.innodb.db.DBConstants.*;
 import static ru.innopolis.dmd.project.innodb.db.PageType.*;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.*;
+import static ru.innopolis.dmd.project.innodb.utils.StringUtils.repeat;
 
 /**
  * @author Timur Kasatkin
@@ -66,10 +68,34 @@ public class PageUtils {
         return null;
     }
 
-    public static void main(String[] args) {
-        Page page = getPage(7);
-        page.deserialize();
-        System.out.println();
+    public static Page createPage(PageType pageType, RandomAccessFile raf) {
+        try {
+            long oldLength = raf.length();
+            int newPageNumber = (int) (oldLength / PAGE_LENGTH);
+            setToPage(raf, newPageNumber);
+            String newPageData = String.valueOf(pageType.marker);
+            Page newPage = null;
+            switch (pageType) {
+                case FREE_PAGE:
+                case DATABASE_META:
+                case DATABASE_SCHEME:
+                case TABLE_SCHEME:
+                case INDEX_SCHEME:
+                case INDEX_DATA:
+                    newPageData += repeat('_', PAGE_LENGTH - 1 - 1);
+                    newPage = new Page(newPageNumber, pageType, newPageData);
+                    break;
+                case TABLE_DATA:
+                    newPageData += "0" + repeat('_', FREE_OFFSET_LENGTH - 1)
+                            + "0" + repeat('_', PAGE_LENGTH - 1 - META_DATA_LENGTH + NEXT_PAGE_NUM_LENGTH - 1);
+                    newPage = new TableDataPage(newPageNumber, newPageData, 0, 0);
+                    break;
+            }
+            raf.writeBytes(newPageData + '\n');
+            raf.setLength(oldLength + newPageData.length() + 1);
+            return newPage;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
-
 }

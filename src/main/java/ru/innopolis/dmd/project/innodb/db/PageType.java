@@ -27,7 +27,7 @@ public enum PageType {
         return Stream.of(values())
                 .filter(pt -> pt.marker == marker)
                 .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(() -> new IllegalArgumentException("Invalid page type character: " + marker));
     }
 
 

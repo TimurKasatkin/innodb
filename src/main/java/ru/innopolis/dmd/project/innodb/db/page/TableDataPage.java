@@ -27,18 +27,26 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
     }
 
     public TableDataPage(int number, String rawData) {
+        this(number, rawData,
+                parseInt(substring(rawData, PAGE_TYPE_LENGTH, FREE_OFFSET_LENGTH).replaceAll("_", "")),
+                parseInt(substring(rawData, PAGE_TYPE_LENGTH + FREE_OFFSET_LENGTH, NEXT_PAGE_NUM_LENGTH).replaceAll("_", "")));
+    }
+
+    public TableDataPage(int number, String rawData, int freeOffset, int nextPageNum) {
         super(number, PageType.TABLE_DATA, rawData);
-        freeOffset = parseInt(substring(rawData, PAGE_TYPE_LENGTH, FREE_OFFSET_LENGTH).replaceAll("_", ""));
-        nextPageNum = parseInt(substring(rawData, PAGE_TYPE_LENGTH + FREE_OFFSET_LENGTH, NEXT_PAGE_NUM_LENGTH).replaceAll("_", ""));
+        this.freeOffset = freeOffset;
+        this.nextPageNum = nextPageNum;
     }
 
     public boolean canInsert(String formattedRow) {
-        return formattedRow.length() + META_DATA + FREE_OFFSET_LENGTH <= PAGE_LENGTH;
+        return formattedRow.length() + META_DATA_LENGTH + freeOffset <= PAGE_LENGTH;
     }
 
     public void insert(String formattedRow) {
-        int newPayloadLength = META_DATA + freeOffset + formattedRow.length();
-        rawData = substring(rawData, 0, META_DATA + freeOffset) + formattedRow + rawData.substring(newPayloadLength);
+        int newPayloadLength = META_DATA_LENGTH + freeOffset + formattedRow.length();
+        rawData = substring(rawData, 0, META_DATA_LENGTH + freeOffset)
+                + formattedRow
+                + rawData.substring(newPayloadLength);
         setFreeOffset(freeOffset + formattedRow.length());
     }
 
@@ -83,6 +91,6 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
         String nextPageNumStr = valueOf(nextPageNum);
         rawData = substring(rawData, 0, PAGE_TYPE_LENGTH + FREE_OFFSET_LENGTH) + nextPageNumStr
                 + repeat('_', NEXT_PAGE_NUM_LENGTH - nextPageNumStr.length())
-                + rawData.substring(META_DATA);
+                + rawData.substring(META_DATA_LENGTH);
     }
 }
