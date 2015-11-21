@@ -34,7 +34,7 @@ public interface DBConstants {
 
     Pattern TABLE_COL_SCHEME_REGEXP = Pattern.compile("(?<colname>[a-zA-Z_]+)\\$(?<coltype>[a-zA-Z_]+)\\|?");
 
-    Pattern ROW_REGEXP = Pattern.compile("\\[(([^$]*\\$?)+)\\]");
+    Pattern ROW_REGEXP = Pattern.compile("\\[(([^$\\[\\]]*\\$?)+)\\]");
 
     String NULL_MARKER = "\\NUL";
 
@@ -48,7 +48,7 @@ public interface DBConstants {
     String TABLES_FILES_DIRECTORY = "/home/timur/dev/workspace/innodb/src/main/resources/tables";
 //            ClassLoader.getSystemResource("tables").toString().replace("file:", "");
 
-    String DATABASE_FILE_PATH = TABLES_FILES_DIRECTORY + "/tables/innodb.data";
+    String DATABASE_FILE_PATH = TABLES_FILES_DIRECTORY + "/innodb.data";
 
     File DB_FILE = new File(DATABASE_FILE_PATH);
 
@@ -77,7 +77,7 @@ public interface DBConstants {
 
     int FREE_OFFSET_LENGTH = 4;
 
-    int NEXT_PAGE_NUM_LENGTH = 4;
+    int NEXT_PAGE_NUM_LENGTH = 10;
 
     int META_DATA_LENGTH = PAGE_TYPE_LENGTH +
             FREE_OFFSET_LENGTH +

@@ -42,10 +42,7 @@ public class PageUtils {
         try {
             setToPage(raf, pageNumber);
             String rawData = raf.readLine();
-            PageType pageType = PageType.byMarker(
-//                    ((char) raf.readByte())
-                    rawData.charAt(0)
-            );
+            PageType pageType = PageType.byMarker(rawData.charAt(0));
             switch (pageType) {
                 case FREE_PAGE:
                     return new Page(pageNumber, FREE_PAGE, rawData);

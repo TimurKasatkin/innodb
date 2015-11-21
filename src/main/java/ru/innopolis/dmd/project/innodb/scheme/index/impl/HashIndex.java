@@ -21,8 +21,8 @@ public class HashIndex extends AbstractIndex<String, Long> {
 
     private RandomAccessFile raf;
 
-    public HashIndex(int pageNum, List<Column> columns) {
-        super(columns);
+    public HashIndex(int pageNum, String tableName, List<Column> columns) {
+        super(tableName, columns);
         this.pageNum = pageNum;
         try {
             raf = new RandomAccessFile(DBConstants.DB_FILE, "rw");

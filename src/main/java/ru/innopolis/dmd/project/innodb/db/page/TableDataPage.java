@@ -1,9 +1,13 @@
 package ru.innopolis.dmd.project.innodb.db.page;
 
+import ru.innopolis.dmd.project.innodb.Cache;
+import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.db.PageType;
 import ru.innopolis.dmd.project.innodb.utils.PageUtils;
+import ru.innopolis.dmd.project.innodb.utils.RowUtils;
 
 import java.util.Iterator;
+import java.util.List;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
@@ -21,6 +25,10 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
     private int freeOffset = 0;
 
     private int nextPageNum = 0;
+
+    private List<Row> rows;
+
+    private String tableName;
 
     public TableDataPage(int number) {
         super(number, PageType.TABLE_DATA);
@@ -92,5 +100,19 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
         rawData = substring(rawData, 0, PAGE_TYPE_LENGTH + FREE_OFFSET_LENGTH) + nextPageNumStr
                 + repeat('_', NEXT_PAGE_NUM_LENGTH - nextPageNumStr.length())
                 + rawData.substring(META_DATA_LENGTH);
+    }
+
+    public List<Row> getRows(String tableName) {
+        this.tableName = tableName;
+        if (rows == null) {
+            synchronized (this) {
+                if (rows == null) {
+                    rows = RowUtils.parseRows(substring(rawData,
+                            META_DATA_LENGTH, freeOffset),
+                            Cache.getTable(tableName).getColumns());
+                }
+            }
+        }
+        return rows;
     }
 }

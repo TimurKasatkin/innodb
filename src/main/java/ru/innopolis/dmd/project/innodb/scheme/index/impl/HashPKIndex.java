@@ -1,5 +1,6 @@
 package ru.innopolis.dmd.project.innodb.scheme.index.impl;
 
+import ru.innopolis.dmd.project.innodb.Cache;
 import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.db.DBConstants;
 import ru.innopolis.dmd.project.innodb.db.PageType;
@@ -12,14 +13,12 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
 
-import static ru.innopolis.dmd.project.innodb.Cache.getTable;
 import static ru.innopolis.dmd.project.innodb.db.DBConstants.TABLE_PAGES_COUNT;
-import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.entry;
-import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.map;
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.stream;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.setToPage;
-import static ru.innopolis.dmd.project.innodb.utils.PageUtils.createPage;
-import static ru.innopolis.dmd.project.innodb.utils.PageUtils.getPage;
+import static ru.innopolis.dmd.project.innodb.utils.PageUtils.*;
 import static ru.innopolis.dmd.project.innodb.utils.RowUtils.format;
+import static ru.innopolis.dmd.project.innodb.utils.RowUtils.pkValue;
 import static ru.innopolis.dmd.project.innodb.utils.StringUtils.hash;
 
 /**
@@ -33,15 +32,12 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
 
     private RandomAccessFile raf;
 
-    public HashPKIndex(int pageNum, List<Column> columns) {
-        super(columns);
+    public HashPKIndex(int pageNum, String tableName, List<Column> columns) {
+        super(tableName, columns);
         this.pageNum = pageNum;
         try {
             raf = new RandomAccessFile(DBConstants.DB_FILE, "rw");
-            setToPage(raf, pageNum);
-            if (!PageType.byMarker((char) raf.readByte()).equals(PageType.TABLE_SCHEME)) {
-                throw new IllegalArgumentException("There is no table scheme for pk index on page " + pageNum);
-            }
+            assertPageTypesEquals(raf, pageNum, PageType.TABLE_SCHEME);
             setToPage(raf, pageNum);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -49,53 +45,45 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
     }
 
     public static void main(String[] args) {
-        Table articles = getTable("articles");
+        Table articles = Cache.getTable("articles");
         PKIndex pkIndex = articles.getPkIndex();
-//        Row row = new Row(map(entry("id", 5),
-//                entry("title", "lol title"),
-//                entry("publtype", "journal_article"),
-//                entry("url", "urlka"),
-//                entry("year", null)));
-//        pkIndex.insert("5", row);
-        long start = System.nanoTime();
-        for (int i = 10005; i < 30000; i++) {
-            Row row = new Row(map(entry("id", i),
-                    entry("title", "lol title#" + i),
-                    entry("publtype", "journal_article"),
-                    entry("url", "urlka #" + i),
-                    entry("year", i)));
-            pkIndex.insert(i + "", row);
+//        long start = System.nanoTime();
+//        for (int i = 1; i < 10000; i++) {
+//            Row row = new Row(map(entry("id", i),
+//                    entry("title", "lol title#" + i),
+//                    entry("publtype", "journal_article"),
+//                    entry("url", "urlka #" + i),
+//                    entry("year", i)));
+//            pkIndex.insert(i + "", row);
+//        }
+//        System.out.println("Inserted for " + (System.nanoTime() - start) / 1000000 + " ns.");
+        for (int i = 0; i < 10000; i++) {
+            System.out.println("Row with key " + i + ":" + pkIndex.search(i + ""));
         }
-        System.out.println("Inserted for " + (System.nanoTime() - start) / 1000000 + " ns.");
     }
 
     @Override
     public Row search(String pkStr) {
-        try {
-            int pageNum = hash(pkStr) % TABLE_PAGES_COUNT;
-            pageNum = this.pageNum + 1 + pageNum;
-            TableDataPage page = (TableDataPage) getPage(pageNum, raf);
-            setToPage(raf, this.pageNum);
-            int freeOffset = page.getFreeOffset();
-            int nextPageNum = page.getNextPageNum();
-
-            System.out.println();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        int pageNum = hash(pkStr) % TABLE_PAGES_COUNT;
+        pageNum = this.pageNum + 1 + pageNum;
+        TableDataPage cur = (TableDataPage) getPage(pageNum, raf);
+        do {
+            Row row = stream(cur.getRows(getTable().getName()))
+                    .filter(r -> pkValue(r, table).equals(pkStr))
+                    .findFirst().orElse(null);
+            if (row != null) return row;
+            cur = cur.next();
+        } while (cur != null);
         return null;
     }
 
     @Override
     public void insert(String pkStr, Row row) {
-//        try {
         int pageNum = hash(pkStr) % TABLE_PAGES_COUNT;
         String formattedRow = format(row);
-//            setToPage(raf, pageNum + this.pageNum + 1);
-        TableDataPage page = (TableDataPage) getPage(pageNum + this.pageNum + 1, raf);
         boolean inserted = false;
         System.out.print("Trying to insert: " + formattedRow + " ... ");
-        TableDataPage cur = page;
+        TableDataPage cur = (TableDataPage) getPage(pageNum + this.pageNum + 1, raf);
         while (!inserted) {
             if (cur.canInsert(formattedRow)) {
                 cur.insert(formattedRow);
@@ -115,9 +103,6 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
             }
         }
         System.out.println("OK.");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override

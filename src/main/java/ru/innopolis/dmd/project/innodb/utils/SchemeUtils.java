@@ -51,7 +51,7 @@ public class SchemeUtils {
                     String idxType = matcher.group("idxtype");
                     switch (idxType) {
                         case "unique":
-                            indexes.add(new HashIndex(idxpagenum, indexColumns));
+                            indexes.add(new HashIndex(idxpagenum, tableName, indexColumns));
                             break;
                         case "multi":
                             //TODO multivalued index
@@ -75,7 +75,7 @@ public class SchemeUtils {
                     if (constraintStr.startsWith("pk")) {
                         if (pkIndex != null)
                             throw new IllegalArgumentException("There several separate primary key constraints");
-                        pkIndex = new HashPKIndex(pageNum, constraintColumns);
+                        pkIndex = new HashPKIndex(pageNum, tableName, constraintColumns);
                         constraints.add(new PrimaryKey(pkIndex));
                         pks.addAll(constraintColumns);
                     } else if (constraintStr.startsWith("unique")) {
