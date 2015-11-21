@@ -1,4 +1,4 @@
-package ru.innopolis.dmd.project.innodb.operations;
+package ru.innopolis.dmd.project.innodb.dml;
 
 /**
  * @author Timur Kasatkin

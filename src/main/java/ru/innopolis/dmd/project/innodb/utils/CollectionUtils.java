@@ -1,8 +1,9 @@
 package ru.innopolis.dmd.project.innodb.utils;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import ru.innopolis.dmd.project.innodb.Tuple;
+
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,8 +26,32 @@ public class CollectionUtils {
         return collection.stream();
     }
 
+    public static <T> Stream<T> stream(T... values) {
+        return Stream.of(values);
+    }
+
     public static <T> Stream<T> parallelStream(Collection<T> collection) {
         return collection.parallelStream();
+    }
+
+    public static <T> Stream<T> parallelStream(T... values) {
+        return Stream.of(values).parallel();
+    }
+
+    public static Tuple tuple(Comparable... values) {
+        return new Tuple(values);
+    }
+
+    public static <K, V> Entry<K, V> entry(K key, V value) {
+        return new AbstractMap.SimpleEntry<>(key, value);
+    }
+
+    public static <K, V> Map<K, V> map(Entry<K, V>... entries) {
+        Map<K, V> map = new LinkedHashMap<>(entries.length);
+        for (Entry<K, V> entry : entries) {
+            map.put(entry.getKey(), entry.getValue());
+        }
+        return map;
     }
 
 }

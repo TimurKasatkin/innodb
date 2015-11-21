@@ -27,14 +27,16 @@ public interface DBConstants {
     Pattern TABLE_SCHEME_REGEXP = Pattern.compile("(?<tablename>[a-zA-Z_]+)\\{(?<descr>[^}\\{]+)}\\{(?<constraints>[^}\\{]+)}(\\{(?<indexes>[^}\\{]+)})?");
 
     //{title->articles_unique_title_index(11)}
-    Pattern TABLE_INDEX_SCHEME_REGEXP = Pattern.compile("\\{(?<colnames>([a-zA-Z_]+,?)+)->(?<tablename>[a-zA-Z_]+)_(unique_)?index\\((?<idxpagenum>[0-9]+)\\)}");
+    Pattern TABLE_INDEX_SCHEME_REGEXP = Pattern.compile("(?<colnames>([a-zA-Z_]+,?)+)->(?<tablename>[a-zA-Z]+):(?<idxtype>(unique|multi))_([A-Za-z_]+-?)+_index\\((?<idxpagenum>[0-9]+)\\)\\|?");
 
     Pattern TABLE_CONSTRAINT_REGEXP = Pattern.compile("(?<constraintcols>([a-zA-Z_]+,?)+)->(?<constraints>((pk|unique|notnull|fk\\((?<fktable>.+)\\((?<fkcols>([A-Za-z_]+/?)+)\\)\\)),?)+)\\|?");
     //Pattern.compile("(?<constraint>pk|fk\\((?<fktable>.+)\\((?<fkcol>.+)\\)\\)|unique|not_null)\\$?");
 
     Pattern TABLE_COL_SCHEME_REGEXP = Pattern.compile("(?<colname>[a-zA-Z_]+)\\$(?<coltype>[a-zA-Z_]+)\\|?");
 
-    Pattern ROW_REGEXP = Pattern.compile("\\[([^$]*\\$?)+\\]");
+    Pattern ROW_REGEXP = Pattern.compile("\\[(([^$]*\\$?)+)\\]");
+
+    String NULL_MARKER = "\\NUL";
 
     //One byte characters
     //[/\\,.\[\]\{\}|"'1234567890-=+*`~!@#$%^&*()_+QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm:;<>?]+
@@ -59,6 +61,12 @@ public interface DBConstants {
      */
     int PAGE_LENGTH = 4097 + /*for '\n' character*/1;
 
+    //=================================DB META PAGE=================================
+
+    int PAGES_COUNT_LENGTH = 7;
+
+    int FIRST_FREE_PAGE_NUM_LENGTH = 7;
+
     //=================================HASH INDEX STRUCTURE=================================
 
     int INDEX_PAGE_COUNT = 15;
@@ -69,11 +77,11 @@ public interface DBConstants {
 
     int FREE_OFFSET_LENGTH = 4;
 
-    int NEXT_PAGE_OFFSET_LENGTH = 4;
+    int NEXT_PAGE_NUM_LENGTH = 4;
 
     int META_DATA = PAGE_TYPE_LENGTH +
             FREE_OFFSET_LENGTH +
-            NEXT_PAGE_OFFSET_LENGTH;
+            NEXT_PAGE_NUM_LENGTH;
 
     /**
      * Length of one data page in bytes

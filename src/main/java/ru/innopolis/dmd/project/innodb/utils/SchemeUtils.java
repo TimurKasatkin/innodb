@@ -1,21 +1,25 @@
 package ru.innopolis.dmd.project.innodb.utils;
 
-import ru.innopolis.dmd.project.innodb.Row;
+import ru.innopolis.dmd.project.innodb.Cache;
 import ru.innopolis.dmd.project.innodb.scheme.Column;
 import ru.innopolis.dmd.project.innodb.scheme.Table;
-import ru.innopolis.dmd.project.innodb.scheme.constraint.Constraint;
+import ru.innopolis.dmd.project.innodb.scheme.constraint.*;
+import ru.innopolis.dmd.project.innodb.scheme.index.Index;
+import ru.innopolis.dmd.project.innodb.scheme.index.PKIndex;
+import ru.innopolis.dmd.project.innodb.scheme.index.impl.HashIndex;
+import ru.innopolis.dmd.project.innodb.scheme.index.impl.HashPKIndex;
 import ru.innopolis.dmd.project.innodb.scheme.type.Types;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static ru.innopolis.dmd.project.innodb.db.DBConstants.*;
-import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.*;
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.parallelStream;
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.stream;
 
 /**
  * @author Timur Kasatkin
@@ -24,15 +28,7 @@ import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.*;
  */
 public class SchemeUtils {
 
-//    private static Column parseColumn(String colDescription) {
-//        colDescription = colDescription.substring(
-//                isPk(colDescription) ? PRIMARY_KEY_MARKER.length() + 1 : 1,
-//                colDescription.length() - 1);
-//        String[] split = colDescription.split(MAIN_DELIMITER_REGEXP);
-//        return new Column(split[0], Types.byName(split[1]));
-//    }
-
-    public static Table parseTable(String schemeDescription) {
+    public static Table parseTable(int pageNum, String schemeDescription) {
         Matcher matcher = TABLE_SCHEME_REGEXP.matcher(schemeDescription);
         if (matcher.find()) {
             String tableName = matcher.group("tablename");
@@ -41,37 +37,71 @@ public class SchemeUtils {
             String indexesStr = matcher.group("indexes");
 
             List<Column> columns = parseColumns(descriptionStr);
-            List<String> columnNames = parallelStream(columns).map(Column::getName).collect(toList());
+            Map<String, Column> columnMap =
+                    parallelStream(columns).collect(toMap(Column::getName, c -> c));
             List<Column> pks = new LinkedList<>();
             //PARSE INDEXES
-
-
-            //PARSE CONSTRAINTS
-            matcher = TABLE_CONSTRAINT_REGEXP.matcher(constraintsStr);
-            while (matcher.find()) {
-                String[] colNames = matcher.group("constraintcols").split(",");
-                if (!columnNames.containsAll(list(colNames))) {
-                    throw new IllegalArgumentException("Constraints description has columns which are not in ");
-                }
-                String[] constraintStrs = matcher.group("constraints").split(",");
-                List<Constraint> constraints = new LinkedList<>();
-                for (String constraintStr : constraintStrs) {
-                    switch (constraintStr) {
-                        case "pk":
-//                            constraints.add(new PrimaryKey());
-                            break;
-                        case "fk":
+            List<Index> indexes = new LinkedList<>();
+            if (indexesStr != null) {
+                matcher = TABLE_INDEX_SCHEME_REGEXP.matcher(indexesStr);
+                while (matcher.find()) {
+                    List<Column> indexColumns = stream(matcher.group("colnames").split(","))
+                            .map(columnMap::get).collect(toList());
+                    int idxpagenum = Integer.parseInt(matcher.group("idxpagenum"));
+                    String idxType = matcher.group("idxtype");
+                    switch (idxType) {
                         case "unique":
-
+                            indexes.add(new HashIndex(idxpagenum, indexColumns));
                             break;
-                        case "notnull":
-//                            constraints.addAll(Stream.of());
+                        case "multi":
+                            //TODO multivalued index
                             break;
                     }
                 }
-                System.out.println();
             }
-            System.out.println();
+
+            //PARSE CONSTRAINTS
+            matcher = TABLE_CONSTRAINT_REGEXP.matcher(constraintsStr);
+            List<Constraint> constraints = new LinkedList<>();
+            List<Table> parentTables = new LinkedList<>();
+            PKIndex pkIndex = null;
+            while (matcher.find()) {
+                String[] colNames = matcher.group("constraintcols").split(",");
+                if (!stream(colNames).allMatch(columnMap::containsKey)) {
+                    throw new IllegalArgumentException("Constraints description has columns which are not in ");
+                }
+                List<Column> constraintColumns = stream(colNames).map(columnMap::get).collect(toList());
+                for (String constraintStr : matcher.group("constraints").split(",")) {
+                    if (constraintStr.startsWith("pk")) {
+                        if (pkIndex != null)
+                            throw new IllegalArgumentException("There several separate primary key constraints");
+                        pkIndex = new HashPKIndex(pageNum, constraintColumns);
+                        constraints.add(new PrimaryKey(pkIndex));
+                        pks.addAll(constraintColumns);
+                    } else if (constraintStr.startsWith("unique")) {
+                        constraints.add(new Unique(stream(indexes)
+                                .filter(index -> index.getColumns().containsAll(constraintColumns))
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalArgumentException("There is no index for such columns"))));
+                    } else if (constraintStr.startsWith("fk")) {
+                        String fkTableName = matcher.group("fktable");
+                        //String fkCols = matcher.group("fkcols");
+                        Table parentTable = Cache.getTable(fkTableName);
+                        parentTables.add(parentTable);
+                        constraints.add(new ForeignKey(constraintColumns, parentTable));
+                    } else if (constraintStr.startsWith("notnull")) {
+                        constraints.addAll(stream(constraintColumns).map(NotNull::new).collect(toList()));
+                    } else
+                        throw new IllegalArgumentException("Invalid constraint description format");
+                }
+            }
+            Table table = new Table(pageNum, tableName, pks, columns, constraints, pkIndex,
+                    indexes.toArray((Index<String, Long>[]) new Index[indexes.size()]));
+            parentTables.forEach(parentTable -> {
+                parentTable.addChildTable(table);
+                table.addParentTable(parentTable);
+            });
+            return table;
         }
         return null;
     }
@@ -90,39 +120,6 @@ public class SchemeUtils {
             return new Column(matcher.group("colname"), Types.byName(matcher.group("coltype")));
         else
             throw new IllegalArgumentException("Invalid column description format");
-    }
-
-    public static List<Row> parseRows(List<Column> columns, String rowsStr) {
-        List<Row> rows = new LinkedList<>();
-        Matcher matcher = ROW_REGEXP.matcher(rowsStr);
-        while (matcher.find()) {
-            Map<String, Comparable> rowMap = new LinkedHashMap<>();
-            String[] split = matcher.group(1).split("\\$");
-            for (int i = 0; i < columns.size(); i++) {
-                Column column = columns.get(i);
-                rowMap.put(column.getName(), column.getType().parse(split[i]));
-            }
-            rows.add(new Row(rowMap));
-        }
-        return rows;
-    }
-
-    public static Row parseRow(List<Column> columns, String rowStr) {
-        Matcher matcher = ROW_REGEXP.matcher(rowStr);
-        if (matcher.matches()) {
-            Map<String, Comparable> rowMap = new LinkedHashMap<>();
-            String[] split = matcher.group(1).split("\\$");
-            for (int i = 0; i < columns.size(); i++) {
-                Column column = columns.get(i);
-                rowMap.put(column.getName(), column.getType().parse(split[i]));
-            }
-            return new Row(rowMap);
-        }
-        return null;
-    }
-
-    public static String formatRow(Row row) {
-        return "[" + stream(row.entries().entrySet()).map(Map.Entry::toString).collect(joining(",")) + "]";
     }
 
 }

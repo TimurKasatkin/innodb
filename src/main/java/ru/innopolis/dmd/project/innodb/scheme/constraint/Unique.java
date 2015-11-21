@@ -17,10 +17,10 @@ public class Unique implements Constraint {
     private final List<Column> columns;
     private final Index index;
 
-    public Unique(List<Column> columns, Index index) {
-        if (columns == null || columns.size() == 0)
+    public Unique(Index index) {
+        if (index == null || index.getColumns() == null || index.getColumns().size() == 0)
             throw new IllegalArgumentException();
-        this.columns = columns;
+        this.columns = index.getColumns();
         this.index = index;
     }
 

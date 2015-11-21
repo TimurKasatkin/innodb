@@ -63,7 +63,7 @@ package ru.innopolis.dmd.project.innodb.db;
 //                        offset = createNewPage(currentPosition);
 //                    else offset = getPageContPointer(Integer.parseInt(jumpToPage.trim()));
 //                } else {
-//                    raf.skipBytes(NEXT_PAGE_OFFSET_LENGTH + freeOffset);
+//                    raf.skipBytes(NEXT_PAGE_NUM_LENGTH + freeOffset);
 //                    long posToTree = raf.getFilePointer();
 //                    raf.writeBytes(formattedRow);
 //                    raf.seek(offset);

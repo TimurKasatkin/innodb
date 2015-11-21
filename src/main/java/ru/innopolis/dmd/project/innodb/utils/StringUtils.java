@@ -29,4 +29,8 @@ public class StringUtils {
         return hash;
     }
 
+    public static String substring(String s, int from, int count) {
+        return s.substring(from, from + count);
+    }
+
 }

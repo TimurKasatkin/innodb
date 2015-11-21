@@ -1,5 +1,7 @@
 package ru.innopolis.dmd.project.innodb.scheme.index;
 
+import ru.innopolis.dmd.project.innodb.scheme.Column;
+
 import java.util.List;
 
 /**
@@ -12,6 +14,8 @@ public interface MultivaluedIndex<Key extends Comparable<Key>, Value> {
     void insert(Key key, Value value);
 
     List<Value> search(Key key);
+
+    List<Column> getColumns();
 
     void remove(Key key, Value value);
 

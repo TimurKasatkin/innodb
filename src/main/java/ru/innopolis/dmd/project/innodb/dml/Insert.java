@@ -1,8 +1,10 @@
-package ru.innopolis.dmd.project.innodb.operations;
+package ru.innopolis.dmd.project.innodb.dml;
 
 import ru.innopolis.dmd.project.innodb.Cache;
 import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.scheme.Table;
+
+import static ru.innopolis.dmd.project.innodb.utils.RowUtils.pkValue;
 
 /**
  * @author Timur Kasatkin
@@ -29,6 +31,6 @@ public class Insert implements Executable {
 
     @Override
     public void execute() {
-
+        table.getPkIndex().insert(pkValue(row, table), row);
     }
 }

@@ -1,5 +1,9 @@
 package ru.innopolis.dmd.project.innodb.scheme.index;
 
+import ru.innopolis.dmd.project.innodb.scheme.Column;
+
+import java.util.List;
+
 /**
  * @author Timur Kasatkin
  * @date 18.11.15.
@@ -12,6 +16,8 @@ public interface Index<Key extends Comparable<Key>, Value> {
     void insert(Key key, Value value);
 
     void remove(Key key);
+
+    List<Column> getColumns();
 
     default void update(Key key, Value value) {
         remove(key);

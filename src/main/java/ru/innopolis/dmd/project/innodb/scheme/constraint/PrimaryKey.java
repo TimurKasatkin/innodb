@@ -16,10 +16,10 @@ public class PrimaryKey implements Constraint {
     private final List<Column> columns;
     private final PKIndex index;
 
-    public PrimaryKey(PKIndex index, List<Column> columns) {
-        if (columns == null || columns.size() == 0)
+    public PrimaryKey(PKIndex index) {
+        if (index == null || index.getColumns() == null || index.getColumns().size() == 0)
             throw new IllegalArgumentException();
-        this.columns = columns;
+        this.columns = index.getColumns();
         this.index = index;
     }
 

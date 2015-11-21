@@ -2,12 +2,12 @@ package ru.innopolis.dmd.project.innodb.scheme.constraint;
 
 import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.scheme.Column;
+import ru.innopolis.dmd.project.innodb.scheme.Table;
 import ru.innopolis.dmd.project.innodb.scheme.index.PKIndex;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.stream;
+import static ru.innopolis.dmd.project.innodb.utils.RowUtils.pkValue;
 
 /**
  * @author Timur Kasatkin
@@ -18,6 +18,10 @@ public class ForeignKey implements Constraint {
 
     private final PKIndex index;
     private final List<Column> columns;
+
+    public ForeignKey(List<Column> columns, Table parentTable) {
+        this(columns, parentTable.getPkIndex());
+    }
 
     public ForeignKey(List<Column> columns, PKIndex index) {
         if (columns == null || columns.size() == 0)
@@ -33,12 +37,7 @@ public class ForeignKey implements Constraint {
 
     @Override
     public boolean test(Row row) {
-        String concatenation = stream(columns)
-                .map(Column::getName)
-                .map(row::getValue)
-                .map(Object::toString)
-                .collect(Collectors.joining());
-        return index.search(concatenation) != null;
+        return index.search(pkValue(row, columns)) != null;
     }
 
 }
