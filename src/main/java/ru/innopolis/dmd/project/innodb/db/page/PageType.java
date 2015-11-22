@@ -1,4 +1,4 @@
-package ru.innopolis.dmd.project.innodb.db;
+package ru.innopolis.dmd.project.innodb.db.page;
 
 import java.util.stream.Stream;
 

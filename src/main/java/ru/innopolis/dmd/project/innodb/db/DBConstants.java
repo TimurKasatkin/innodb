@@ -27,9 +27,9 @@ public interface DBConstants {
     Pattern TABLE_SCHEME_REGEXP = Pattern.compile("(?<tablename>[a-zA-Z_]+)\\{(?<descr>[^}\\{]+)}\\{(?<constraints>[^}\\{]+)}(\\{(?<indexes>[^}\\{]+)})?");
 
     //{title->articles_unique_title_index(11)}
-    Pattern TABLE_INDEX_SCHEME_REGEXP = Pattern.compile("(?<colnames>([a-zA-Z_]+,?)+)->(?<tablename>[a-zA-Z]+):(?<idxtype>(unique|multi))_([A-Za-z_]+-?)+_index\\((?<idxpagenum>[0-9]+)\\)\\|?");
+    Pattern TABLE_INDEX_SCHEME_REGEXP = Pattern.compile("(?<colnames>([a-zA-Z_]+,?)+)->(?<tablename>[a-zA-Z_]+):(?<idxtype>(unique|multi))_([A-Za-z_]+-?)+_index\\((?<idxpagenum>[0-9]+)\\)\\|?");
 
-    Pattern TABLE_CONSTRAINT_REGEXP = Pattern.compile("(?<constraintcols>([a-zA-Z_]+,?)+)->(?<constraints>((pk|unique|notnull|fk\\((?<fktable>.+)\\((?<fkcols>([A-Za-z_]+/?)+)\\)\\)),?)+)\\|?");
+    Pattern TABLE_CONSTRAINT_REGEXP = Pattern.compile("(?<constraintcols>([a-zA-Z_]+,?)+)->(?<constraints>((pk|unique|notnull|fk\\((?<fktable>[A-Za-z_]+)\\((?<fkcols>([A-Za-z_]+/?)+)\\)\\)),?)+)\\|?");
     //Pattern.compile("(?<constraint>pk|fk\\((?<fktable>.+)\\((?<fkcol>.+)\\)\\)|unique|not_null)\\$?");
 
     Pattern TABLE_COL_SCHEME_REGEXP = Pattern.compile("(?<colname>[a-zA-Z_]+)\\$(?<coltype>[a-zA-Z_]+)\\|?");
@@ -71,22 +71,30 @@ public interface DBConstants {
 
     int INDEX_PAGE_COUNT = 23;
 
+    int INDEX_PAGE_FREE_OFFSET_LENGTH = 4;
+
+    int INDEX_PAGE_NEXT_PAGE_NUM_LENGTH = 10;
+
+    int INDEX_PAGE_META_DATA_LENGTH = PAGE_TYPE_LENGTH +
+            INDEX_PAGE_FREE_OFFSET_LENGTH +
+            INDEX_PAGE_NEXT_PAGE_NUM_LENGTH;
+
     //=================================TABLE DATA PAGE STRUCTURE=================================
+
+    int TABLE_PAGE_FREE_OFFSET_LENGTH = 4;
+
+    int TABLE_PAGE_NEXT_PAGE_NUM_LENGTH = 10;
 
     int TABLE_PAGES_COUNT = 59;
 
-    int FREE_OFFSET_LENGTH = 4;
-
-    int NEXT_PAGE_NUM_LENGTH = 10;
-
-    int META_DATA_LENGTH = PAGE_TYPE_LENGTH +
-            FREE_OFFSET_LENGTH +
-            NEXT_PAGE_NUM_LENGTH;
+    int TABLE_PAGE_META_DATA_LENGTH = PAGE_TYPE_LENGTH +
+            TABLE_PAGE_FREE_OFFSET_LENGTH +
+            TABLE_PAGE_NEXT_PAGE_NUM_LENGTH;
 
     /**
      * Length of one data page in bytes
      */
-    int PAYLOAD_PAGE_LENGTH = PAGE_LENGTH - META_DATA_LENGTH;
+    int PAYLOAD_PAGE_LENGTH = PAGE_LENGTH - TABLE_PAGE_META_DATA_LENGTH;
 
 
 }

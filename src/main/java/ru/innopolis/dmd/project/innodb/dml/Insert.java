@@ -24,13 +24,29 @@ public class Insert implements Executable {
     public Insert(Row row, Table table) {
         if (table == null)
             throw new IllegalArgumentException("There is no table");
-        table.test(row);
+        if (!table.test(row))
+            throw new IllegalArgumentException("Row violates table constraint");
         this.row = row;
         this.table = table;
+    }
+
+    public static void main(String[] args) {
+//        for (int i = 0; i < 10000; i++) {
+//            new Insert(new Row(map(
+//                    entry("id", i),
+//                    entry("title", "title #" + i),
+//                    entry("publtype", "journal_article"),
+//                    entry("url", "url #" + i),
+//                    entry("year", null)
+//            )), "articles").execute();
+//        }
+
     }
 
     @Override
     public void execute() {
         table.getPkIndex().insert(pkValue(row, table), row);
     }
+
+
 }

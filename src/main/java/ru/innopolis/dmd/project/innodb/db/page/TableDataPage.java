@@ -2,7 +2,6 @@ package ru.innopolis.dmd.project.innodb.db.page;
 
 import ru.innopolis.dmd.project.innodb.Cache;
 import ru.innopolis.dmd.project.innodb.Row;
-import ru.innopolis.dmd.project.innodb.db.PageType;
 import ru.innopolis.dmd.project.innodb.utils.PageUtils;
 import ru.innopolis.dmd.project.innodb.utils.RowUtils;
 
@@ -28,16 +27,14 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
 
     private List<Row> rows;
 
-    private String tableName;
-
     public TableDataPage(int number) {
         super(number, PageType.TABLE_DATA);
     }
 
     public TableDataPage(int number, String rawData) {
         this(number, rawData,
-                parseInt(substring(rawData, PAGE_TYPE_LENGTH, FREE_OFFSET_LENGTH).replaceAll("_", "")),
-                parseInt(substring(rawData, PAGE_TYPE_LENGTH + FREE_OFFSET_LENGTH, NEXT_PAGE_NUM_LENGTH).replaceAll("_", "")));
+                parseInt(substring(rawData, PAGE_TYPE_LENGTH, TABLE_PAGE_FREE_OFFSET_LENGTH).replaceAll("_", "")),
+                parseInt(substring(rawData, PAGE_TYPE_LENGTH + TABLE_PAGE_FREE_OFFSET_LENGTH, TABLE_PAGE_NEXT_PAGE_NUM_LENGTH).replaceAll("_", "")));
     }
 
     public TableDataPage(int number, String rawData, int freeOffset, int nextPageNum) {
@@ -47,15 +44,27 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
     }
 
     public boolean canInsert(String formattedRow) {
-        return formattedRow.length() + META_DATA_LENGTH + freeOffset <= PAGE_LENGTH;
+        return formattedRow.length() + TABLE_PAGE_META_DATA_LENGTH + freeOffset < PAGE_LENGTH;
     }
 
     public void insert(String formattedRow) {
-        int newPayloadLength = META_DATA_LENGTH + freeOffset + formattedRow.length();
-        rawData = substring(rawData, 0, META_DATA_LENGTH + freeOffset)
+        int newPayloadLength = TABLE_PAGE_META_DATA_LENGTH + freeOffset + formattedRow.length();
+        rawData = substring(rawData, 0, TABLE_PAGE_META_DATA_LENGTH + freeOffset)
                 + formattedRow
                 + rawData.substring(newPayloadLength);
         setFreeOffset(freeOffset + formattedRow.length());
+    }
+
+    public boolean has(String formattedRow) {
+        return rawData.contains(formattedRow);
+    }
+
+    public void delete(String formattedRow) {
+        int indexOf = rawData.indexOf(formattedRow);
+        rawData = rawData.substring(0, indexOf)
+                + rawData.substring(indexOf + formattedRow.length())
+                + repeat("_", formattedRow.length());
+        setFreeOffset(freeOffset - formattedRow.length());
     }
 
     @Override
@@ -84,8 +93,8 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
         this.freeOffset = freeOffset;
         String freeOffsetStr = valueOf(freeOffset);
         rawData = rawData.charAt(0) + freeOffsetStr
-                + repeat('_', FREE_OFFSET_LENGTH - freeOffsetStr.length())
-                + rawData.substring(PAGE_TYPE_LENGTH + FREE_OFFSET_LENGTH);
+                + repeat('_', TABLE_PAGE_FREE_OFFSET_LENGTH - freeOffsetStr.length())
+                + rawData.substring(PAGE_TYPE_LENGTH + TABLE_PAGE_FREE_OFFSET_LENGTH);
     }
 
     public int getNextPageNum() {
@@ -97,22 +106,19 @@ public class TableDataPage extends Page implements Iterator<TableDataPage>, Iter
             throw new IllegalArgumentException("Free offset can not be");
         this.nextPageNum = nextPageNum;
         String nextPageNumStr = valueOf(nextPageNum);
-        rawData = substring(rawData, 0, PAGE_TYPE_LENGTH + FREE_OFFSET_LENGTH) + nextPageNumStr
-                + repeat('_', NEXT_PAGE_NUM_LENGTH - nextPageNumStr.length())
-                + rawData.substring(META_DATA_LENGTH);
+        rawData = substring(rawData, 0, PAGE_TYPE_LENGTH + TABLE_PAGE_FREE_OFFSET_LENGTH) + nextPageNumStr
+                + repeat('_', TABLE_PAGE_NEXT_PAGE_NUM_LENGTH - nextPageNumStr.length())
+                + rawData.substring(TABLE_PAGE_META_DATA_LENGTH);
     }
 
     public List<Row> getRows(String tableName) {
-        this.tableName = tableName;
-        if (rows == null) {
+        if (rows == null)
             synchronized (this) {
-                if (rows == null) {
+                if (rows == null)
                     rows = RowUtils.parseRows(substring(rawData,
-                            META_DATA_LENGTH, freeOffset),
+                            TABLE_PAGE_META_DATA_LENGTH, freeOffset),
                             Cache.getTable(tableName).getColumns());
-                }
             }
-        }
         return rows;
     }
 }

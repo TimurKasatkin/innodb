@@ -1,7 +1,6 @@
 package ru.innopolis.dmd.project.innodb;
 
-import ru.innopolis.dmd.project.innodb.db.DataManager;
-import ru.innopolis.dmd.project.innodb.db.PageType;
+import ru.innopolis.dmd.project.innodb.db.page.PageType;
 import ru.innopolis.dmd.project.innodb.scheme.Table;
 import ru.innopolis.dmd.project.innodb.utils.SchemeUtils;
 
@@ -12,7 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 
 import static ru.innopolis.dmd.project.innodb.db.DBConstants.*;
-import static ru.innopolis.dmd.project.innodb.db.PageType.*;
+import static ru.innopolis.dmd.project.innodb.db.page.PageType.*;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.readChars;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.setToPage;
 import static ru.innopolis.dmd.project.innodb.utils.PageUtils.assertPageTypesEquals;
@@ -24,7 +23,7 @@ import static ru.innopolis.dmd.project.innodb.utils.PageUtils.assertPageTypesEqu
  */
 public class Cache implements AutoCloseable {
 
-    public static DataManager dataManager;
+//    public static DataManager dataManager;
 
     /**
      * Table name -> Table object

@@ -15,6 +15,9 @@ public class Join implements RelationalOperator {
 
     private final BiPredicate<Row, Row> onPredicate;
     private RelationalOperator operator1, operator2;
+    private String tableName1;
+    private String tableName2;
+    private Table table2;
 
     public Join(String tableName1, String tableName2, BiPredicate<Row, Row> onPredicate) {
         this(Cache.getTable(tableName1), Cache.getTable(tableName2), onPredicate);
@@ -24,9 +27,16 @@ public class Join implements RelationalOperator {
         this(new Scan(table1), table2, onPredicate);
     }
 
+    public Join(RelationalOperator operator1, String tableName2, BiPredicate<Row, Row> onPredicate) {
+        this(operator1, Cache.getTable(tableName2), onPredicate);
+    }
+
     public Join(RelationalOperator operator1, Table table2, BiPredicate<Row, Row> onPredicate) {
+        this.tableName1 = tableName1;
+        this.tableName2 = tableName2;
         this.operator1 = operator1;
-        this.operator2 = new Scan(table2);
+        this.table2 = table2;
+        this.operator2 = new Scan(this.table2);
         this.onPredicate = onPredicate;
     }
 

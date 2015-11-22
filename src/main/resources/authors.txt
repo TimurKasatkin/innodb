@@ -1,1 +1,0 @@
-authors{<pk>[id$INT]$<unique|not_null>[title$VARCHAR]$<not_null>[publtype$VARCHAR]$[url$VARCHAR]$[year$INT]}

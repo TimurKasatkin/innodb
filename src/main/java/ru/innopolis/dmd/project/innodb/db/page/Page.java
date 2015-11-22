@@ -1,12 +1,12 @@
 package ru.innopolis.dmd.project.innodb.db.page;
 
-import ru.innopolis.dmd.project.innodb.db.PageType;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import static ru.innopolis.dmd.project.innodb.db.DBConstants.PAGE_LENGTH;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.createRaf;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.setToPage;
+import static ru.innopolis.dmd.project.innodb.utils.StringUtils.repeat;
 
 /**
  * @author Timur Kasatkin
@@ -44,6 +44,22 @@ public class Page {
         }
     }
 
+    public boolean hasSpaceFor(String data) {
+        int i = rawData.length() - 1;
+        while (rawData.charAt(i) == '_')
+            i--;
+        return ((i + 1) + data.length()) <= PAGE_LENGTH;
+    }
+
+    public void insertData(String data) {
+        int i = rawData.length() - 1;
+        while (rawData.charAt(i) == '_')
+            i--;
+        String payLoadData = rawData.substring(0, i + 1);
+        rawData = payLoadData + data;
+        rawData += repeat('_', PAGE_LENGTH - rawData.length() - 1);
+    }
+
     public String getRawData() {
         if (rawData == null) {
             try {
@@ -54,6 +70,10 @@ public class Page {
             }
         }
         return rawData;
+    }
+
+    public void setRawData(String rawData) {
+        this.rawData = rawData;
     }
 
     public void deserialize() {

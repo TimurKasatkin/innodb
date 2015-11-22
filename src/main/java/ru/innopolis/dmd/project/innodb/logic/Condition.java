@@ -2,9 +2,11 @@ package ru.innopolis.dmd.project.innodb.logic;
 
 import ru.innopolis.dmd.project.innodb.Row;
 
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
+
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.list;
 
 /**
  * @author Timur Kasatkin
@@ -24,7 +26,7 @@ public class Condition implements Predicate<Row> {
     private List<Comparable> params;
 
     public Condition(String columnName, ConditionType conditionType, Comparable... params) {
-        this(columnName, conditionType, Arrays.asList(params));
+        this(columnName, conditionType, list(params));
     }
 
     public Condition(String columnName, ConditionType conditionType, List<Comparable> params) {
@@ -65,6 +67,30 @@ public class Condition implements Predicate<Row> {
 
     public List<Comparable> getParams() {
         return params;
+    }
+
+    public List<String> getColumnNames() {
+        List<String> columnNames = new LinkedList<>();
+        columnNames.add(this.columnName);
+        if (hasNext())
+            columnNames.addAll(next.getColumnNames());
+        return columnNames;
+    }
+
+    public List<Condition> asList() {
+        List<Condition> conditions = new LinkedList<>();
+        conditions.add(this);
+        if (hasNext())
+            conditions.addAll(next.asList());
+        return conditions;
+    }
+
+    public List<ConditionType> conditionTypes() {
+        List<ConditionType> conditionTypes = new LinkedList<>();
+        conditionTypes.add(this.conditionType);
+        if (hasNext())
+            conditionTypes.addAll(next.conditionTypes());
+        return conditionTypes;
     }
 
     @Override

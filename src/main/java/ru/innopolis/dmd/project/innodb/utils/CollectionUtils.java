@@ -54,4 +54,14 @@ public class CollectionUtils {
         return map;
     }
 
+    public static <K, V> Map<K, V> map(Collection<Entry<K, V>> entries) {
+        Map<K, V> map = new LinkedHashMap<>(entries.size());
+        for (Entry<K, V> entry : entries) {
+            map.put(entry.getKey(), entry.getValue());
+        }
+        return map;
+    }
+
+
+
 }

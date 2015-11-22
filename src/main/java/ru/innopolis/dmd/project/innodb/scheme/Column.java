@@ -40,7 +40,6 @@ public class Column {
         if (o == null || getClass() != o.getClass()) return false;
         Column column = (Column) o;
         return name.equals(column.name);
-
     }
 
     @Override

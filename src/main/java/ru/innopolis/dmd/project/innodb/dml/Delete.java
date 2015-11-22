@@ -6,6 +6,10 @@ package ru.innopolis.dmd.project.innodb.dml;
  * @email aronwest001@gmail.com
  */
 public class Delete implements Executable {
+
+    public Delete() {
+    }
+
     @Override
     public void execute() {
 

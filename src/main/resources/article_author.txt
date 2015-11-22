@@ -1,1 +1,0 @@
-article_author{<pk|fk(articles(id))>[article_id]$<pk|fk(authors(id))>[author_id]}

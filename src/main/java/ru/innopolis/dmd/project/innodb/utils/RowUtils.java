@@ -70,6 +70,12 @@ public class RowUtils {
                 .collect(Collectors.joining("$")) + "]";
     }
 
+    public static Row addTablePrefix(String tableName, Row row) {
+        return row == null ? null : new Row(map(stream(row.entries().entrySet())
+                .map(entry -> entry(tableName + "_" + entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList())));
+    }
+
     public static void main(String[] args) {
         Row row = new Row(map(entry("id", 5),
                 entry("title", "lol title"),

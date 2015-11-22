@@ -1,15 +1,17 @@
 package ru.innopolis.dmd.project.innodb.utils;
 
-import ru.innopolis.dmd.project.innodb.db.PageType;
+import ru.innopolis.dmd.project.innodb.db.page.IndexDataPage;
 import ru.innopolis.dmd.project.innodb.db.page.Page;
+import ru.innopolis.dmd.project.innodb.db.page.PageType;
 import ru.innopolis.dmd.project.innodb.db.page.TableDataPage;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import static ru.innopolis.dmd.project.innodb.db.DBConstants.*;
-import static ru.innopolis.dmd.project.innodb.db.PageType.*;
+import static ru.innopolis.dmd.project.innodb.db.page.PageType.*;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.*;
+import static ru.innopolis.dmd.project.innodb.utils.StringUtils.hash;
 import static ru.innopolis.dmd.project.innodb.utils.StringUtils.repeat;
 
 /**
@@ -37,6 +39,10 @@ public class PageUtils {
         return page;
     }
 
+    public static int pageNumber(String str, int max) {
+        return Math.abs(hash(str) % TABLE_PAGES_COUNT);
+    }
+
 
     public static Page getPage(int pageNumber, RandomAccessFile raf) {
         try {
@@ -57,7 +63,7 @@ public class PageUtils {
                 case INDEX_SCHEME:
                     return new Page(pageNumber, INDEX_SCHEME, rawData);
                 case INDEX_DATA:
-                    return new Page(pageNumber, INDEX_DATA, rawData);
+                    return new IndexDataPage(pageNumber, rawData);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -78,13 +84,17 @@ public class PageUtils {
                 case DATABASE_SCHEME:
                 case TABLE_SCHEME:
                 case INDEX_SCHEME:
-                case INDEX_DATA:
                     newPageData += repeat('_', PAGE_LENGTH - 1 - 1);
                     newPage = new Page(newPageNumber, pageType, newPageData);
                     break;
+                case INDEX_DATA:
+                    newPageData += "0" + repeat('_', INDEX_PAGE_FREE_OFFSET_LENGTH - 1)
+                            + "0" + repeat('_', PAGE_LENGTH - 1 - INDEX_PAGE_META_DATA_LENGTH + INDEX_PAGE_NEXT_PAGE_NUM_LENGTH - 1);
+                    newPage = new IndexDataPage(newPageNumber, newPageData);
+                    break;
                 case TABLE_DATA:
-                    newPageData += "0" + repeat('_', FREE_OFFSET_LENGTH - 1)
-                            + "0" + repeat('_', PAGE_LENGTH - 1 - META_DATA_LENGTH + NEXT_PAGE_NUM_LENGTH - 1);
+                    newPageData += "0" + repeat('_', TABLE_PAGE_FREE_OFFSET_LENGTH - 1)
+                            + "0" + repeat('_', PAGE_LENGTH - 1 - TABLE_PAGE_META_DATA_LENGTH + TABLE_PAGE_NEXT_PAGE_NUM_LENGTH - 1);
                     newPage = new TableDataPage(newPageNumber, newPageData, 0, 0);
                     break;
             }

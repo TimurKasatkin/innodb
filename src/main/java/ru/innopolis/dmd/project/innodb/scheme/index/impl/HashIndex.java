@@ -1,14 +1,13 @@
 package ru.innopolis.dmd.project.innodb.scheme.index.impl;
 
 import ru.innopolis.dmd.project.innodb.db.DBConstants;
-import ru.innopolis.dmd.project.innodb.db.PageType;
+import ru.innopolis.dmd.project.innodb.db.page.PageType;
 import ru.innopolis.dmd.project.innodb.scheme.Column;
+import ru.innopolis.dmd.project.innodb.utils.PageUtils;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
-
-import static ru.innopolis.dmd.project.innodb.utils.FileUtils.setToPage;
 
 /**
  * @author Timur Kasatkin
@@ -26,11 +25,7 @@ public class HashIndex extends AbstractIndex<String, Long> {
         this.pageNum = pageNum;
         try {
             raf = new RandomAccessFile(DBConstants.DB_FILE, "rw");
-            setToPage(raf, pageNum);
-            if (!PageType.byMarker((char) raf.readByte()).equals(PageType.INDEX_SCHEME)) {
-                throw new IllegalArgumentException("There is no index scheme on page " + pageNum);
-            }
-            setToPage(raf, pageNum);
+            PageUtils.assertPageTypesEquals(raf, pageNum, PageType.INDEX_SCHEME);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

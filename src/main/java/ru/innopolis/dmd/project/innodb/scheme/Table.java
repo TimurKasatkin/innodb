@@ -2,7 +2,7 @@ package ru.innopolis.dmd.project.innodb.scheme;
 
 import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.db.DBConstants;
-import ru.innopolis.dmd.project.innodb.db.PageType;
+import ru.innopolis.dmd.project.innodb.db.page.PageType;
 import ru.innopolis.dmd.project.innodb.scheme.constraint.Constraint;
 import ru.innopolis.dmd.project.innodb.scheme.constraint.PrimaryKey;
 import ru.innopolis.dmd.project.innodb.scheme.index.Index;
