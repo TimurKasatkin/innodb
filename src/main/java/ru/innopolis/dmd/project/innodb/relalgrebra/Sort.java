@@ -50,7 +50,7 @@ public class Sort implements RelationalOperator {
             throw new IllegalArgumentException("Offset should not be negative or zero");
         List<Row> list = operator.loadAll();
         Collections.sort(list, (o1, o2) -> (sortType.equals(SortType.ASC) ? 1 : -1) *
-                o1.v(sortBy).compareTo(o2.v(sortBy)));
+                (o1 != null && o2 != null ? (o1.v(sortBy).compareTo(o2.v(sortBy))) : -1));
         rowsIterator = list.iterator();
         this.sortBy = sortBy;
         int i = 0;

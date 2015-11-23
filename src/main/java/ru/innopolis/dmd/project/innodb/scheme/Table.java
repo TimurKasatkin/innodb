@@ -34,9 +34,9 @@ public class Table {
 
     private List<Constraint> constraints;
 
-    private List<Index<String, Long>> uniqueIndexes;
+    private List<Index<String, Integer>> uniqueIndexes;
 
-    private List<MultivaluedIndex<String, Long>> multivaluedIndexes;
+    private List<MultivaluedIndex<String, Integer>> multivaluedIndexes;
 
     private List<Table> childTables;
 
@@ -51,7 +51,7 @@ public class Table {
                  List<Column> columns,
                  List<Constraint> constraints,
                  PKIndex pkIndex,
-                 Index<String, Long>... uniqueIndexes) {
+                 Index<String, Integer>... uniqueIndexes) {
 //        if (!pks.stream().allMatch(columns::contains))
 //            throw new IllegalArgumentException("List of columns should contain all primary keys");
         try {
@@ -119,7 +119,7 @@ public class Table {
         this.pageNumber = pageNumber;
     }
 
-    public List<Index<String, Long>> getUniqueIndexes() {
+    public List<Index<String, Integer>> getUniqueIndexes() {
         return uniqueIndexes;
     }
 
@@ -127,7 +127,7 @@ public class Table {
         return pkIndex;
     }
 
-    public void addMultivaluedIndex(MultivaluedIndex<String, Long> multivaluedIndex) {
+    public void addMultivaluedIndex(MultivaluedIndex<String, Integer> multivaluedIndex) {
         if (multivaluedIndex == null) {
             throw new IllegalArgumentException("Multivalued index null!!!");
         }

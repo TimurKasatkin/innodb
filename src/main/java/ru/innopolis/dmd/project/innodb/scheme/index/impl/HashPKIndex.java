@@ -102,7 +102,7 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
         boolean inserted = false;
         System.out.print("Trying to insert: " + formattedRow + " ... ");
         TableDataPage cur = (TableDataPage) getPage(pageNum + this.pageNum + 1, raf);
-        long newRowPageNum = 0;
+        int newRowPageNum = 0;
         while (!inserted) {
             if (cur.canInsert(formattedRow)) {
                 cur.insert(formattedRow);
@@ -123,7 +123,7 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
                 }
             }
         }
-        for (Index<String, Long> uniqueIndexes : getTable().getUniqueIndexes()) {
+        for (Index<String, Integer> uniqueIndexes : getTable().getUniqueIndexes()) {
             uniqueIndexes.insert(stream(uniqueIndexes.getColumns())
                     .map(Column::getName)
                     .map(row::getValue)
@@ -149,7 +149,7 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
                     cur.delete(formattedRow);
                     cur.serialize(raf);
                     System.out.println("OK.");
-                    for (Index<String, Long> uniqueIndex : getTable().getUniqueIndexes()) {
+                    for (Index<String, Integer> uniqueIndex : getTable().getUniqueIndexes()) {
                         uniqueIndex.remove(stream(uniqueIndex.getColumns())
                                 .map(Column::getName)
                                 .map(row::getValue)

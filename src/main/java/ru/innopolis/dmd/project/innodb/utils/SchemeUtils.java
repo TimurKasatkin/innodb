@@ -103,7 +103,7 @@ public class SchemeUtils {
                 }
             }
             Table table = new Table(pageNum, tableName, pks, columns, constraints, pkIndex,
-                    indexes.toArray((Index<String, Long>[]) new Index[indexes.size()]));
+                    indexes.toArray((Index<String, Integer>[]) new Index[indexes.size()]));
             parentTables.forEach(parentTable -> {
                 parentTable.addChildTable(table);
                 table.addParentTable(parentTable);
@@ -210,7 +210,7 @@ public class SchemeUtils {
                 schemePage.serialize(raf);
             }
             Table table = new Table(pageNum, tableName, pks, columns, constraints, pkIndex,
-                    indexes.toArray((Index<String, Long>[]) new Index[indexes.size()]));
+                    indexes.toArray((Index<String, Integer>[]) new Index[indexes.size()]));
             parentTables.forEach(parentTable -> {
                 parentTable.addChildTable(table);
                 table.addParentTable(parentTable);

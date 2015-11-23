@@ -24,7 +24,7 @@ public enum ConditionType {
         @Override
         public boolean test(Comparable val, List<Comparable> params) {
             String patternStr = ((String) params.get(0));
-            if (patternStr == null || !pattern.pattern().equals(patternStr))
+            if (pattern == null || !pattern.pattern().equals(patternStr))
                 pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
             return pattern.matcher((CharSequence) val).find();
         }

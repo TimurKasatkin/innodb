@@ -21,7 +21,7 @@ import static ru.innopolis.dmd.project.innodb.utils.RowUtils.format;
  * @date 20.11.15.
  * @email aronwest001@gmail.com
  */
-public class HashIndex extends AbstractIndex<String, Long> {
+public class HashIndex extends AbstractIndex<String, Integer> {
 
     private int pageNum;
 
@@ -39,7 +39,7 @@ public class HashIndex extends AbstractIndex<String, Long> {
     }
 
     @Override
-    public Long search(String s) {
+    public Integer search(String s) {
         int pageNum = pageNumber(s, INDEX_PAGE_COUNT);
         pageNum = this.pageNum + 1 + pageNum;
         IndexDataPage cur = (IndexDataPage) getPage(pageNum, raf);
@@ -47,14 +47,14 @@ public class HashIndex extends AbstractIndex<String, Long> {
             Row row = stream(cur.getRows())
                     .filter(r -> r.getValue("key").equals(s))
                     .findFirst().orElse(null);
-            if (row != null) return (Long) row.v("val");
+            if (row != null) return (int) row.v("val");
             cur = cur.next();
         } while (cur != null);
         return null;
     }
 
     @Override
-    public void insert(String s, Long pageNumber) {
+    public void insert(String s, Integer pageNumber) {
         int pageNum = pageNumber(s, INDEX_PAGE_COUNT);
         String formattedRow = format(new Row(map(
                 entry("key", s),

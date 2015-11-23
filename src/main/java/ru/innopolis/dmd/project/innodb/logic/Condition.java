@@ -48,8 +48,7 @@ public class Condition implements Predicate<Row> {
     public boolean test(Row row) {
         boolean matches = conditionType.matches(row.getValue(columnName), params);
         if (hasNext())
-            matches = logicalOperation.test(matches,
-                    next.conditionType.matches(row.getValue(columnName), params));
+            matches = logicalOperation.test(matches, next.test(row));
         return matches;
     }
 

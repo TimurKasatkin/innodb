@@ -3,9 +3,8 @@ package ru.innopolis.dmd.project.innodb.dml;
 import ru.innopolis.dmd.project.innodb.Cache;
 import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.scheme.Table;
+import ru.innopolis.dmd.project.innodb.utils.CollectionUtils;
 
-import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.entry;
-import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.map;
 import static ru.innopolis.dmd.project.innodb.utils.RowUtils.pkValue;
 
 /**
@@ -48,14 +47,20 @@ public class Insert implements Executable {
 //                    entry("name", "conference #" + i)
 //            )), "conferences").execute();
 //        }
-        for (int i = 40000; i < 100000; i++) {
-            new Insert(
-                    new Row(map(
-                            entry("article_id", i),
-                            entry("conference_id", i)
-                    )), "article_conference"
-            ).execute();
-        }
+//        for (int i = 40000; i < 100000; i++) {
+//            new Insert(
+//                    new Row(map(
+//                            entry("article_id", i),
+//                            entry("conference_id", i)
+//                    )), "article_conference"
+//            ).execute();
+//        }
+        new Insert(new Row(CollectionUtils.map(
+                CollectionUtils.entry("id", 1),
+                CollectionUtils.entry("login", "user"),
+                CollectionUtils.entry("password", "password"),
+                CollectionUtils.entry("email", "user@mail.ru"),
+                CollectionUtils.entry("role", "USER"))), "users").execute();
     }
 
     @Override

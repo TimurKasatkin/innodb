@@ -67,15 +67,15 @@ public class Scan implements RelationalOperator {
 
     public static void main(String[] args) {
         fullScanTest();
-        testWithOffsetAndLimit(0, 5);
-        testWithOffsetAndLimit(5, 5);
-        testWithOffsetAndLimit(10, 5);
-        testWithOffsetAndLimit(100000, 5);
+//        testWithOffsetAndLimit(0, 5);
+//        testWithOffsetAndLimit(5, 5);
+//        testWithOffsetAndLimit(10, 5);
+//        testWithOffsetAndLimit(100000, 5);
 //        testWithOffsetAndLimit(0, 9999);
     }
 
     private static void fullScanTest() {
-        Scan articles = new Scan("articles");
+        Scan articles = new Scan("users");
         List<Row> rows = articles.loadAll();
         System.out.println("Rows count: " + rows.size());
         rows.forEach(System.out::println);

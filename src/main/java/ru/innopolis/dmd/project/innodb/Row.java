@@ -22,6 +22,10 @@ public class Row {
         this.entries = entries;
     }
 
+    public boolean has(String fieldName) {
+        return entries.containsKey(fieldName);
+    }
+
     public Comparable v(String fieldName) {
         return getValue(fieldName);
     }

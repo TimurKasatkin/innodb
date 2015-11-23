@@ -76,6 +76,10 @@ public class RowUtils {
                 .collect(Collectors.toList())));
     }
 
+    public static List<Row> addTablePrefix(String tableName, List<Row> rows) {
+        return stream(rows).map(row -> addTablePrefix(tableName, row)).collect(Collectors.toList());
+    }
+
     public static void main(String[] args) {
         Row row = new Row(map(entry("id", 5),
                 entry("title", "lol title"),

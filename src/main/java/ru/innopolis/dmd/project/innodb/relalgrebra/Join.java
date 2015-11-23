@@ -13,11 +13,15 @@ import java.util.function.BiPredicate;
  */
 public class Join implements RelationalOperator {
 
-    private final BiPredicate<Row, Row> onPredicate;
+    private BiPredicate<Row, Row> onPredicate;
     private RelationalOperator operator1, operator2;
     private String tableName1;
     private String tableName2;
     private Table table2;
+
+    public Join(String tableName1, String tableName2, String firstField, String secondField) {
+        this(tableName1, tableName2, (row, row2) -> row.v(firstField).compareTo(row2.v(secondField)) == 0);
+    }
 
     public Join(String tableName1, String tableName2, BiPredicate<Row, Row> onPredicate) {
         this(Cache.getTable(tableName1), Cache.getTable(tableName2), onPredicate);
@@ -32,8 +36,7 @@ public class Join implements RelationalOperator {
     }
 
     public Join(RelationalOperator operator1, Table table2, BiPredicate<Row, Row> onPredicate) {
-        this.tableName1 = tableName1;
-        this.tableName2 = tableName2;
+        this.tableName2 = table2.getName();
         this.operator1 = operator1;
         this.table2 = table2;
         this.operator2 = new Scan(this.table2);
