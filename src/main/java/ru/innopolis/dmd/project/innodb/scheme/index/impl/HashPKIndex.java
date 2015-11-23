@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static ru.innopolis.dmd.project.innodb.db.DBConstants.TABLE_PAGES_COUNT;
-import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.stream;
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.*;
 import static ru.innopolis.dmd.project.innodb.utils.FileUtils.setToPage;
 import static ru.innopolis.dmd.project.innodb.utils.PageUtils.*;
 import static ru.innopolis.dmd.project.innodb.utils.RowUtils.format;
@@ -46,8 +46,8 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
     }
 
     public static void main(String[] args) {
-        Table articles = Cache.getTable("articles");
-        PKIndex pkIndex = articles.getPkIndex();
+        Table journals = Cache.getTable("journals");
+        PKIndex pkIndex = journals.getPkIndex();
 //        long start = System.nanoTime();
 //        for (int i = 1; i < 10000; i++) {
 //            Row row = new Row(map(entry("id", i),
@@ -61,6 +61,9 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
 //        for (int i = 0; i < 10000; i++) {
 //            System.out.println("Row with key " + i + ":" + pkIndex.search(i + ""));
 //        }
+        pkIndex.insert("5", new Row(
+                map(entry("id", 5), entry("name", "name #5"))
+        ));
     }
 
     @Override
@@ -160,5 +163,6 @@ public class HashPKIndex extends AbstractIndex<String, Row> implements PKIndex {
         } while (cur != null);
         System.out.println("NOT FOUND.");
     }
+
 
 }

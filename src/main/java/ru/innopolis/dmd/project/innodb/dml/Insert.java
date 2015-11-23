@@ -4,6 +4,8 @@ import ru.innopolis.dmd.project.innodb.Cache;
 import ru.innopolis.dmd.project.innodb.Row;
 import ru.innopolis.dmd.project.innodb.scheme.Table;
 
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.entry;
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.map;
 import static ru.innopolis.dmd.project.innodb.utils.RowUtils.pkValue;
 
 /**
@@ -31,7 +33,7 @@ public class Insert implements Executable {
     }
 
     public static void main(String[] args) {
-//        for (int i = 0; i < 10000; i++) {
+//        for (int i = 5000; i < 10000; i++) {
 //            new Insert(new Row(map(
 //                    entry("id", i),
 //                    entry("title", "title #" + i),
@@ -40,7 +42,20 @@ public class Insert implements Executable {
 //                    entry("year", null)
 //            )), "articles").execute();
 //        }
-
+//        for (int i = 4000; i < 10000; i++) {
+//            new Insert(new Row(map(
+//                    entry("id", i),
+//                    entry("name", "conference #" + i)
+//            )), "conferences").execute();
+//        }
+        for (int i = 40000; i < 100000; i++) {
+            new Insert(
+                    new Row(map(
+                            entry("article_id", i),
+                            entry("conference_id", i)
+                    )), "article_conference"
+            ).execute();
+        }
     }
 
     @Override

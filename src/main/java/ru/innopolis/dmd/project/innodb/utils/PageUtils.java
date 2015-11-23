@@ -40,7 +40,7 @@ public class PageUtils {
     }
 
     public static int pageNumber(String str, int max) {
-        return Math.abs(hash(str) % TABLE_PAGES_COUNT);
+        return Math.abs(hash(str) % max);
     }
 
 

@@ -1,12 +1,18 @@
 package ru.innopolis.dmd.project.innodb.db.page;
 
+import ru.innopolis.dmd.project.innodb.Row;
+import ru.innopolis.dmd.project.innodb.scheme.Column;
+import ru.innopolis.dmd.project.innodb.scheme.type.Types;
 import ru.innopolis.dmd.project.innodb.utils.PageUtils;
+import ru.innopolis.dmd.project.innodb.utils.RowUtils;
 
 import java.util.Iterator;
+import java.util.List;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static ru.innopolis.dmd.project.innodb.db.DBConstants.*;
+import static ru.innopolis.dmd.project.innodb.utils.CollectionUtils.list;
 import static ru.innopolis.dmd.project.innodb.utils.StringUtils.repeat;
 import static ru.innopolis.dmd.project.innodb.utils.StringUtils.substring;
 
@@ -17,9 +23,10 @@ import static ru.innopolis.dmd.project.innodb.utils.StringUtils.substring;
  */
 public class IndexDataPage extends Page implements Iterator<IndexDataPage>, Iterable<IndexDataPage> {
 
+    private final static List<Column> indexCols = list(new Column("key", Types.VARCHAR), new Column("val", Types.INT));
     private int freeOffset = 0;
-
     private int nextPageNum = 0;
+    private List<Row> rows;
 
     public IndexDataPage(int number) {
         super(number, PageType.INDEX_DATA);
@@ -37,6 +44,29 @@ public class IndexDataPage extends Page implements Iterator<IndexDataPage>, Iter
         this.nextPageNum = nextPageNum;
     }
 
+    public boolean canInsert(String formattedRow) {
+        return formattedRow.length() + INDEX_PAGE_META_DATA_LENGTH + freeOffset < PAGE_LENGTH;
+    }
+
+    public void insert(String formattedRow) {
+        int newPayloadLength = INDEX_PAGE_META_DATA_LENGTH + freeOffset + formattedRow.length();
+        rawData = substring(rawData, 0, INDEX_PAGE_META_DATA_LENGTH + freeOffset)
+                + formattedRow
+                + rawData.substring(newPayloadLength);
+        setFreeOffset(freeOffset + formattedRow.length());
+    }
+
+    public boolean has(String formattedRow) {
+        return rawData.contains(formattedRow);
+    }
+
+    public void delete(String formattedRow) {
+        int indexOf = rawData.indexOf(formattedRow);
+        rawData = rawData.substring(0, indexOf)
+                + rawData.substring(indexOf + formattedRow.length())
+                + repeat("_", formattedRow.length());
+        setFreeOffset(freeOffset - formattedRow.length());
+    }
 
     @Override
     public boolean hasNext() {
@@ -79,5 +109,15 @@ public class IndexDataPage extends Page implements Iterator<IndexDataPage>, Iter
         rawData = substring(rawData, 0, PAGE_TYPE_LENGTH + INDEX_PAGE_FREE_OFFSET_LENGTH) + nextPageNumStr
                 + repeat('_', INDEX_PAGE_NEXT_PAGE_NUM_LENGTH - nextPageNumStr.length())
                 + rawData.substring(INDEX_PAGE_META_DATA_LENGTH);
+    }
+
+    public List<Row> getRows() {
+        if (rows == null)
+            synchronized (this) {
+                if (rows == null)
+                    rows = RowUtils.parseRows(substring(rawData,
+                            INDEX_PAGE_META_DATA_LENGTH, freeOffset), indexCols);
+            }
+        return rows;
     }
 }
